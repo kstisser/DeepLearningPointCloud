@@ -1,7 +1,7 @@
-import structure
+import encoder
 import voxels
 import pointpillars
 import parabolas
 
-class Structures:
+class Encoders:
     def __init__(self):

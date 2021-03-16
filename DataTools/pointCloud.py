@@ -12,7 +12,7 @@ class DownsampleType(Enum):
     RANDOM = 2
 
 class PointCloud:
-    def __init__(self, rootpath, pcType):
+    def __init__(self, rootpath, pcType, samplingMethod):
         self.viz = vizu.Visualizer()
         self.pcType = pcType
         self.rootpath = rootpath
@@ -25,10 +25,16 @@ class PointCloud:
         print("Read in Point Cloud object " + rootpath)
         print("Face shape: ", self.faceseg.shape)
         print("All shape: ", self.allseg.shape)
-        self.downsampleRandomly(1000)
-        self.viz.visualizeFaceAndAllPlot(self.downsampledFace, self.downsampledAll)
+
+        self.samplingMethod = samplingMethod
+        if(samplingMethod == DownsampleType.RANDOM):
+            self.downsampleRandomly(1000)
+            self.viz.visualizeFaceAndAllPlot(self.downsampledFace, self.downsampledAll)
 
     def downsampleRandomly(self, downsampleNumber):
+        if self.samplingMethod != DownsampleType.RANDOM:
+            print("Error! Wrong downsampling method, can't visualize!")
+            return
         face_rows = self.faceseg.shape[0]
         randomIndices = (np.random.choice(face_rows, size=downsampleNumber, replace=False))
         self.downsampledFace = self.faceseg[randomIndices,:]

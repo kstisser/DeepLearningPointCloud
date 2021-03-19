@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import sys
 import tensorflow as tf 
 import pandas as pd 
 import matplotlib.pyplot as plt 
@@ -16,12 +17,12 @@ class DataReader:
         #check folder exists
         if not os.path.isdir(dataFolder):
             print("Error! Can't find folder with data in it: " + dataFolder)
-            quit()
+            sys.exit()
         self.dataFolder = os.path.join(dataFolder,self.findCloudFolder(dataFolder))
         #sanity check new folder exists
         if not os.path.isdir(dataFolder):
             print("Error! Can't find folder with data in it: " + self.dataFolder)
-            quit()
+            sys.exit()
 
         self.pointClouds = []
         for filename in os.listdir(self.dataFolder):

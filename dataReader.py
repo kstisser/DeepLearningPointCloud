@@ -7,7 +7,7 @@ import DataTools.pointCloud as pc
 import defs
 
 class DataReader:
-    def __init__(self, pcType = defs.StructureType.VOXEL, dataFolder="default", samplingMethod = pc.DownsampleType.NODOWNSAMPLE):
+    def __init__(self, pcType = defs.StructureType.VOXEL, dataFolder="default", samplingMethod = pc.DownsampleType.RANDOM):
         self.pcType = pcType
 
         if dataFolder == "default":

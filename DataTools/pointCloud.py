@@ -6,6 +6,7 @@ import numpy as np
 import os
 from enum import Enum
 from Visualization import visualizer as vizu
+from Preprocessing import randomSampler
 
 class DownsampleType(Enum):
     NODOWNSAMPLE = 1
@@ -26,25 +27,16 @@ class PointCloud:
         print("Face shape: ", self.faceseg.shape)
         print("All shape: ", self.allseg.shape)
 
+        self.randomSampler = randomSampler.RandomSampler()
         self.samplingMethod = samplingMethod
-        if(samplingMethod == DownsampleType.RANDOM):
-            self.downsampleRandomly(1000)
+        self.sampleNumber = 1000
+        self.downsample()
+
+    def downsample(self):
+        if(self.samplingMethod == DownsampleType.RANDOM):
+            self.downsampledFace = self.randomSampler.randomlySamplePoints(self.faceseg, self.sampleNumber)
+            self.downsampledAll = self.randomSampler.randomlySamplePoints(self.allseg, self.sampleNumber) 
             self.viz.visualizeFaceAndAllPlot(self.downsampledFace, self.downsampledAll)
-
-    def downsampleRandomly(self, downsampleNumber):
-        if self.samplingMethod != DownsampleType.RANDOM:
-            print("Error! Wrong downsampling method, can't visualize!")
-            return
-        face_rows = self.faceseg.shape[0]
-        randomIndices = (np.random.choice(face_rows, size=downsampleNumber, replace=False))
-        self.downsampledFace = self.faceseg[randomIndices,:]
-
-        all_rows = self.allseg.shape[0]
-        randomIndices = (np.random.choice(all_rows, size=downsampleNumber, replace=False))
-        self.downsampledAll = self.allseg[randomIndices,:]   
-
-        print("Downsampled Face shape: ", self.downsampledFace.shape)
-        print("Downsampled All shape: ", self.downsampledAll.shape)     
-
+            
     def getDataFrame(self):
         print("Getting data frame")

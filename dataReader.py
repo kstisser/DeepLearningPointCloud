@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import DataTools.pointCloud as pc
 import defs
 
+
 class DataReader:
     def __init__(self, pcType = defs.StructureType.VOXEL, dataFolder="default", samplingMethod = pc.DownsampleType.RANDOM):
         self.pcType = pcType
@@ -27,7 +28,7 @@ class DataReader:
         self.pointClouds = []
         for filename in os.listdir(self.dataFolder):
             folder = os.path.join(self.dataFolder, filename)
-            self.pointClouds.append(pc.PointCloud(folder, pcType, samplingMethod))
+            self.pointClouds.append(pc.PointCloud(folder, pcType, samplingMethod, (8,8,12)))
 
     def findCloudFolder(self, rootDir):
             #if left as default, read in and fix spacing

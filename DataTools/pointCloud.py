@@ -51,7 +51,7 @@ class PointCloud:
         if(self.samplingMethod == DownsampleType.RANDOM):
             self.downsampledFace = self.randomSampler.randomlySamplePoints(self.faceseg, self.sampleNumber)
             self.downsampledAll = self.randomSampler.randomlySamplePoints(self.allseg, self.sampleNumber) 
-            #self.viz.visualizeFaceAndAllPlot(self.downsampledFace, self.downsampledAll)
+            self.viz.visualizeFaceAndAllPlot(self.downsampledFace, self.downsampledAll)
             print("Downsampled Face shape: ", self.downsampledFace.shape)
             print("Downsampled All shape: ", self.downsampledAll.shape)
             

@@ -1,5 +1,6 @@
 import numba
 import numpy as np
+from Visualization import visualizer
 
 '''
 This class holds all information needed for a pillar
@@ -32,6 +33,7 @@ class Pillar:
 
     #Now that we have all points, compute the center and add the columns for c & p subscripts
     def finalizePillar(self):
+        self.nonZero = len(self.D)
         if(not self.isEmpty):
             self.computeCenterMean()
             self.addColumns()
@@ -96,10 +98,11 @@ class PointPillars:
         self.maxX = max(self.data[:,1])
         self.Xspan = self.maxX - self.minX
         self.Yspan = self.maxY - self.minY
+        self.visual = visualizer.Visualizer()
 
     #Intending to separate data into point pillars size (140x100)
     #@numba.jit(nopython=True)
-    def buildPillars(self, pillarDimensions=(40,30), maxPointsPerPillar=20):
+    def buildPillars(self, pillarDimensions=(30,40), maxPointsPerPillar=20):
         #generate centroid points for each pillar
         #note- adding 1 to the dimensions so we can remove the first, and shift the span left
         self.pillars = np.empty((pillarDimensions[0], pillarDimensions[1]), dtype=Pillar)
@@ -138,3 +141,4 @@ class PointPillars:
                     countNonemptyPillars = countNonemptyPillars + 1
 
         print("Nonempty pillars: ", countNonemptyPillars)
+        self.visual.visualizePillars(self.pillars, (430,570), maxPointsPerPillar, self.minX, self.maxX, self.minY, self.maxY)

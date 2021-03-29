@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import open3d
+import cv2 as cv
 
 class Visualizer:
     def __init__(self):
@@ -31,4 +32,32 @@ class Visualizer:
         ax.scatter(allPoints[:,0], allPoints[:,1], allPoints[:,2], c = samp_labels, alpha=1, marker='.')
         ax.view_init(-140, 120)
 
-        plt.show()      
+        plt.show()   
+
+    def visualizePillars(self, pillars, imgShape, maxPointsPerPillar, xmin, xmax, ymin, ymax):
+        #generate a 3 channel image for visualization
+        img = np.zeros((imgShape[0],imgShape[1],3), np.uint8)               
+        buffer = 3
+        for pRows in pillars:
+            for pillar in pRows:
+                centerX = abs(pillar.center[0]/(xmax-xmin)) * imgShape[0]
+                centerY = abs(pillar.center[1]/(ymax-ymin)) * imgShape[1]
+                #print("Centerx: ", centerX, " centery: ", centerY)
+                upperLeft = (int(max(centerX-buffer,0)), int(max(centerY-buffer,0)))
+                lowerRight = (int(min(centerX+buffer, imgShape[0]-1)), int(min(centerY+buffer, imgShape[1]-1)))
+                #print("Upper left: ", upperLeft)
+                #print("Lower right: ", lowerRight)   
+                #print("Center: ", pillar.center)              
+                if pillar.isEmpty:
+                    #color empty pillars green                   
+                    img = cv.rectangle(img, upperLeft, lowerRight, (0,200,0), -1)
+                else:
+                    #get filled ratio
+                    unfilledRatio = 1.0 - float(float(pillar.nonZero)/float(maxPointsPerPillar))
+                    colorVal = int(unfilledRatio * 200 + 54)
+                    #print("Colorval: ", colorVal)
+                    img = cv.rectangle(img, upperLeft, lowerRight, (0,0,colorVal), -1)
+        print("Image size: ", img.shape)
+        cv.imshow('Point Pillars',img)
+        cv.waitKey(0)
+        cv.destroyAllWindows()

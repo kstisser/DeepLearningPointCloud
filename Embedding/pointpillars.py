@@ -1,6 +1,7 @@
 import numba
 import numpy as np
 from Visualization import visualizer
+from DataTools import defs 
 
 '''
 This class holds all information needed for a pillar
@@ -102,15 +103,17 @@ class PointPillars:
 
     #Intending to separate data into point pillars size (140x100)
     #@numba.jit(nopython=True)
-    def buildPillars(self, pillarDimensions=(30,40), maxPointsPerPillar=20):
+    def buildPillars(self, pillarDimensions=defs.ppDimensions, maxPointsPerPillar=defs.maxParams):
         #generate centroid points for each pillar
         #note- adding 1 to the dimensions so we can remove the first, and shift the span left
         self.pillars = np.empty((pillarDimensions[0], pillarDimensions[1]), dtype=Pillar)
-        xshift = self.Xspan/(pillarDimensions[1]+1)
-        yshift = self.Yspan/(pillarDimensions[0]+1)
+        xshift = self.Xspan/(pillarDimensions[1] + 1)
+        yshift = self.Yspan/(pillarDimensions[0] + 1)
         colVals = (np.arange(self.minX, self.maxX, xshift))[:-1] + (xshift/2.0)
         rowVals = (np.arange(self.minY, self.maxY, yshift))[:-1] + (yshift/2.0)
         IDcount = 1
+        #print(rowVals)
+        #print(colVals)
         for rowIdx in range(pillarDimensions[0]):
             for colIdx in range(pillarDimensions[1]):
                 center = (rowVals[rowIdx], colVals[colIdx])
@@ -141,4 +144,4 @@ class PointPillars:
                     countNonemptyPillars = countNonemptyPillars + 1
 
         print("Nonempty pillars: ", countNonemptyPillars)
-        self.visual.visualizePillars(self.pillars, (430,570), maxPointsPerPillar, self.minX, self.maxX, self.minY, self.maxY)
+        #self.visual.visualizePillars(self.pillars, (300,400), maxPointsPerPillar, self.minX, self.maxX, self.minY, self.maxY)

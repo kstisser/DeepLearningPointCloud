@@ -18,6 +18,7 @@ The following dependencies are installed on your system:
 - tensorflow 2/keras
 - open3d
 - pandas
+- sklearn
 
 Recommendation:
 Install Anaconda, create an environment and install jupyter, tensorflow, and if necessary numpy and pandas

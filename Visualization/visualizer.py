@@ -40,8 +40,8 @@ class Visualizer:
         buffer = 3
         for pRows in pillars:
             for pillar in pRows:
-                centerX = abs(pillar.center[0]/(xmax-xmin)) * imgShape[0]
-                centerY = abs(pillar.center[1]/(ymax-ymin)) * imgShape[1]
+                centerX = (pillar.center[0] - xmin)/(xmax-xmin) * imgShape[0]
+                centerY = (pillar.center[1] - ymin)/(ymax-ymin) * imgShape[1]
                 #print("Centerx: ", centerX, " centery: ", centerY)
                 upperLeft = (int(max(centerX-buffer,0)), int(max(centerY-buffer,0)))
                 lowerRight = (int(min(centerX+buffer, imgShape[0]-1)), int(min(centerY+buffer, imgShape[1]-1)))
@@ -61,3 +61,11 @@ class Visualizer:
         cv.imshow('Point Pillars',img)
         cv.waitKey(0)
         cv.destroyAllWindows()
+
+    def visualizeClusters(self, dataToPredict, labels):
+        fig = plt.figure(figsize=[10,10])
+        ax = fig.add_subplot(111, projection='3d')
+
+        ax.scatter(dataToPredict[:,0], dataToPredict[:,1], dataToPredict[:,2], c = labels, alpha=1, marker='.')
+        ax.view_init(-140, 120)
+        plt.show()

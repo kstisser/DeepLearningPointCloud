@@ -1,4 +1,5 @@
-
+import numpy as np
+from DataTools import defs
 class PointPillarModel:
     def __init__(self, modelFileLocation, logDir):
         self.modelFileLocation = modelFileLocation
@@ -73,7 +74,7 @@ class PointPillarModel:
         elif defs.detectionMethod == DetectionMethod.BINARY:
             #What do do here? 
 
-            pillar_net = Dense(#points, sigmoid)
+            pillar_net = Dense((20*30*40), activation = sigmoid)
 
         #????????Should I be loading weights?
         pillar_net.load_weights(os.path.join(MODEL_ROOT, "model.h5"))
@@ -89,7 +90,7 @@ class PointPillarModel:
         pillar_net.compile(optimizer, loss=loss.losses())
 
     epoch_to_decay = int(
-        np.round(df.iters_to_decay / df.batch_size * int(np.ceil(float(len(label_files)) / params.batch_size))))
+        np.round(defs.iters_to_decay / defs.batch_size * int(np.ceil(float(len(label_files)) / params.batch_size))))
     callbacks = [
         tf.keras.callbacks.TensorBoard(log_dir=self.logDir),
         tf.keras.callbacks.ModelCheckpoint(filepath=os.path.join(self.logDir, "model.h5"),
@@ -112,7 +113,7 @@ class PointPillarModel:
                        steps_per_epoch=len(training_gen),
                        callbacks=callbacks,
                        use_multiprocessing=True,
-                       epochs=int(df.total_training_epochs),
+                       epochs=int(defs.total_training_epochs),
                        workers=6)
     except KeyboardInterrupt:
         model_str = "interrupted_%s.h5" % time.strftime("%Y%m%d-%H%M%S")

@@ -6,8 +6,8 @@ if __name__ == "__main__":
     dr = dataReader.DataReader()
 
     #get data split
-    train, test = dr.getTrainTestSplit()
+    trainPillars, trainLabels, testPillars, testLabels = dr.getTrainTestSplit()
 
     #train the data
-    trainPipeline = trainingPipeline.TrainingPipeline(train, test)
+    trainPipeline = trainingPipeline.TrainingPipeline(trainPillars, trainLabels, testPillars, testLabels)
     trainPipeline.trainModel()

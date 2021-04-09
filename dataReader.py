@@ -59,4 +59,16 @@ class DataReader:
             print("Error! Data set too small to make any test data!")
             sys.exit()
         print("Splitting into training: ", len(trainingData), ", test: ", len(testData))
-        return [trainingData, testData]
+
+        #put into x and y sets
+        trainPillars = []
+        trainLabels = []
+        for pc in trainingData:
+            trainPillars.append(pc.pointPillars)
+            trainLabels.append(pc.binLabel)
+        testPillars = []
+        testLabels = []
+        for pc in testData:
+            testPillars.append(pc.pointPillars)
+            testLabels.append(pc.binLabel)    
+        return [trainPillars, trainLabels, testPillars, testLabels]

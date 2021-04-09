@@ -49,6 +49,7 @@ class Visualizer:
                 #print("Lower right: ", lowerRight)   
                 #print("Center: ", pillar.center)              
                 if pillar.isEmpty:
+                    print("is empty")
                     #color empty pillars green                   
                     img = cv.rectangle(img, upperLeft, lowerRight, (0,200,0), -1)
                 else:
@@ -57,7 +58,7 @@ class Visualizer:
                     colorVal = int(unfilledRatio * 200 + 54)
                     #print("Colorval: ", colorVal)
                     img = cv.rectangle(img, upperLeft, lowerRight, (0,0,colorVal), -1)
-        print("Image size: ", img.shape)
+        # print("Image size: ", img.shape)
         cv.imshow('Point Pillars',img)
         cv.waitKey(0)
         cv.destroyAllWindows()

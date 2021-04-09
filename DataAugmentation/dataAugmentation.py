@@ -40,8 +40,8 @@ class DataAugmentation:
             for rotation in range(10):
                 #geo3DRot = 
 
-                #scale
-                for scale in range(5):
+                #scale (3 smaller 3 bigger) 2% increments
+                for scale in range(6):
 
                     #flop
                     for flop in range(2):

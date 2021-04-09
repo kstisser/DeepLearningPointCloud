@@ -1,11 +1,16 @@
 import numpy as np
 from DataTools import defs
+import tensorflow as tf
+import os
+from . import losses
+
 class PointPillarModel:
-    def __init__(self, modelFileLocation, logDir):
+    def __init__(self, modelFileLocation, logDir="../Logs/"):
         self.modelFileLocation = modelFileLocation
         self.logDir = logDir
 
-    def createModelBackbone(self, pillars):
+    #reference to https://github.com/tyagi-iiitv/PointPillars.git
+    def createModelBackbone(self, pillars, trainPillars, trainLabels, testPillars, testLabels):
         # 2d cnn backbone
 
         # Block1(S, 4, C)
@@ -53,7 +58,8 @@ class PointPillarModel:
 #conv layer over this- same size
 #single 1x1 or just this
 #dice + bin crossentropy
-        if defs.detectionMethod == DetectionMethod.DETECTIONHEAD:
+        pillar_net = concat
+        if defs.detectionMethod == defs.DetectionMethod.DETECTIONHEAD:
             # Detection head
             occ = tf.keras.layers.Conv2D(defs.nb_anchors, (1, 1), name="occupancy/conv2d", activation="sigmoid")(concat)
 
@@ -71,52 +77,46 @@ class PointPillarModel:
             clf = tf.keras.layers.Reshape(tuple(i // 2 for i in image_size) + (defs.nb_anchors, defs.nb_classes), name="clf/reshape")(clf)
 
             pillar_net = tf.keras.models.Model([input_pillars, input_indices], [occ, loc, size, angle, heading, clf])
-        elif defs.detectionMethod == DetectionMethod.BINARY:
+        elif defs.detectionMethod == defs.DetectionMethod.BINARY:
             #What do do here? 
+            print("Setting Binary Dense Layer!")
+            pillar_net = tf.keras.layers.Dense((20*30*40), activation = 'sigmoid')(concat)
+        else:
+            print("Error! Don't recognize the type of detection head!")
 
-            pillar_net = Dense((20*30*40), activation = sigmoid)
-
-        #????????Should I be loading weights?
-        pillar_net.load_weights(os.path.join(MODEL_ROOT, "model.h5"))
+        #try loading weights
+        #pillar_net.load_weights(os.path.join("./", "model.h5"))
 
         #loss
-        loss = K.binary_crossentropy(y_true, y_pred)
-        masked_loss = tf.boolean_mask(loss, self.mask)
-        return self.heading_weight * tf.reduce_mean(masked_loss)
+        loss = losses.PointPillarNetworkLoss()
 
         #optimizer
         optimizer = tf.keras.optimizers.Adam(lr=defs.learning_rate, decay=defs.decay_rate)
         #compile
         pillar_net.compile(optimizer, loss=loss.losses())
 
-    epoch_to_decay = int(
-        np.round(defs.iters_to_decay / defs.batch_size * int(np.ceil(float(len(label_files)) / params.batch_size))))
-    callbacks = [
-        tf.keras.callbacks.TensorBoard(log_dir=self.logDir),
-        tf.keras.callbacks.ModelCheckpoint(filepath=os.path.join(self.logDir, "model.h5"),
-                                           monitor='val_loss', save_best_only=True),
-        tf.keras.callbacks.LearningRateScheduler(
-            lambda epoch, lr: lr * 0.8 if ((epoch % epoch_to_decay == 0) and (epoch != 0)) else lr, verbose=True),
-        tf.keras.callbacks.EarlyStopping(patience=20, monitor='val_loss'),
-    ]
+        #epoch_to_decay = int(
+            #np.round(defs.iters_to_decay / defs.batch_size * int(np.ceil(float(len(label_files)) / params.batch_size))))
+        callbacks = [
+            tf.keras.callbacks.TensorBoard(log_dir="../Logs/"),
+            tf.keras.callbacks.ModelCheckpoint(filepath=os.path.join("./", "myBackboneModel.h5"),
+                                            monitor='val_loss', save_best_only=True),
+            tf.keras.callbacks.EarlyStopping(patience=20, monitor='val_loss'),
+        ]
 
-    training_gen = SimpleDataGenerator(data_reader, params.batch_size, lidar_files[:-validation_len], label_files[:-validation_len], calibration_files[:-validation_len])
-    validation_gen = SimpleDataGenerator(data_reader, params.batch_size, lidar_files[-validation_len:], label_files[-validation_len:], calibration_files[-validation_len:])
-
-
-    #     print(pillar_net.summary())    
-    # 
-    # Train and save
-    try:
-        pillar_net.fit(training_gen,
-                       validation_data = validation_gen,
-                       steps_per_epoch=len(training_gen),
-                       callbacks=callbacks,
-                       use_multiprocessing=True,
-                       epochs=int(defs.total_training_epochs),
-                       workers=6)
-    except KeyboardInterrupt:
-        model_str = "interrupted_%s.h5" % time.strftime("%Y%m%d-%H%M%S")
-        pillar_net.save(os.path.join(self.logDir, model_str))
-        print("Interrupt. Saving output to %s" % os.path.join(os.getcwd(), self.logDir[1:], model_str))   
-    
+        print(pillar_net.summary())    
+        # 
+        # Train and save
+        try:
+            pillar_net.fit(self.trainPillars,
+                        validation_data = self.trainLabels,
+                        steps_per_epoch=len(self.trainPillars),
+                        callbacks=callbacks,
+                        use_multiprocessing=True,
+                        epochs=int(defs.total_training_epochs),
+                        workers=6)
+        except KeyboardInterrupt:
+            model_str = "interrupted_%s.h5" % time.strftime("%Y%m%d-%H%M%S")
+            pillar_net.save(os.path.join("../Logs/", model_str))
+            print("Interrupt. Saving output to %s" % os.path.join(os.getcwd(), self.logDir[1:], model_str))   
+        

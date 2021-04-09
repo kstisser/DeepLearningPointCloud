@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import open3d
-# import cv2 as cv
+import cv2 as cv
 
 class Visualizer:
     def __init__(self):
@@ -51,17 +51,17 @@ class Visualizer:
                 if pillar.isEmpty:
                     print("is empty")
                     #color empty pillars green                   
-                    ## img = cv.rectangle(img, upperLeft, lowerRight, (0,200,0), -1)
+                    img = cv.rectangle(img, upperLeft, lowerRight, (0,200,0), -1)
                 else:
                     #get filled ratio
                     unfilledRatio = 1.0 - float(float(pillar.nonZero)/float(maxPointsPerPillar))
                     colorVal = int(unfilledRatio * 200 + 54)
                     #print("Colorval: ", colorVal)
-                    ##img = cv.rectangle(img, upperLeft, lowerRight, (0,0,colorVal), -1)
+                    img = cv.rectangle(img, upperLeft, lowerRight, (0,0,colorVal), -1)
         # print("Image size: ", img.shape)
-        # cv.imshow('Point Pillars',img)
-        # cv.waitKey(0)
-        # cv.destroyAllWindows()
+        cv.imshow('Point Pillars',img)
+        cv.waitKey(0)
+        cv.destroyAllWindows()
 
     def visualizeClusters(self, dataToPredict, labels):
         fig = plt.figure(figsize=[10,10])

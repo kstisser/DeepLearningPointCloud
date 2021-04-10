@@ -64,11 +64,15 @@ class DataReader:
         trainPillars = []
         trainLabels = []
         for pc in trainingData:
-            trainPillars.append(pc.pointPillars)
+            trainPillars.append(pc.pillarVector)
             trainLabels.append(pc.binLabel)
         testPillars = []
         testLabels = []
         for pc in testData:
-            testPillars.append(pc.pointPillars)
-            testLabels.append(pc.binLabel)    
+            testPillars.append(pc.pillarVector)
+            testLabels.append(pc.binLabel)  
+        if len(trainPillars) != len(trainLabels):
+            print("Error! train data and labels don't match")
+        if len(testPillars) != len(testLabels):
+            print("Error! Test data and labels don't match")  
         return [trainPillars, trainLabels, testPillars, testLabels]

@@ -106,7 +106,7 @@ class PointCloud:
                 #TODO- make this work in parallel
                 startTime = time.time()
                 self.pointPillars = pointpillars.PointPillars(self.downsampledAll)
-                self.pointPillars.buildPillars()
+                self.pillarVector = self.pointPillars.buildPillars()
                 endTime = time.time()
                 print("Point Pillars time took: ", (endTime - startTime))
         elif self.embeddingType == defs.EmbeddingType.PARABOLAS:

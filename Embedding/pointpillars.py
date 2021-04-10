@@ -88,6 +88,9 @@ class Pillar:
         randomIndices = np.random.choice(self.D.shape[0], size=self.maxPointsPerPillar, replace=False)
         self.D = self.D[randomIndices, :]
 
+    def getVec(self):
+        return self.D
+
 class PointPillars:
     def __init__(self, data):
         print("Opening point pillars")
@@ -136,12 +139,15 @@ class PointPillars:
             #Add point to the pillar it matched with, and is the closest to
             self.pillarsDic[(tempPillarDic[minDistance])].addPoint(point[0], point[1], point[2])
 
+        pillarData = []
         countNonemptyPillars = 0
         for pRows in self.pillars:
             for pillar in pRows:
                 pillar.finalizePillar()
+                pillarData.append(pillar.getVec())
                 if pillar.getNumberOfEntries() > 0:
                     countNonemptyPillars = countNonemptyPillars + 1
 
         print("Nonempty pillars: ", countNonemptyPillars)
         #self.visual.visualizePillars(self.pillars, (300,400), maxPointsPerPillar, self.minX, self.maxX, self.minY, self.maxY)
+        return pillarData

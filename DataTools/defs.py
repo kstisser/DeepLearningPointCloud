@@ -38,8 +38,8 @@ ppDimensions = (30,40)
 #point pillar net
 nb_channels = 64
 max_points = 100
-max_pillars = 1400
-batch_size = 4
+max_pillars = 240#ppDimensions[0] * ppDimensions[1]
+batch_size = 1
 num_features = 8
 
 #point pillar model

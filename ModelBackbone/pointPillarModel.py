@@ -10,12 +10,12 @@ class PointPillarModel:
         self.logDir = logDir
 
     #reference to https://github.com/tyagi-iiitv/PointPillars.git
-    def createModelBackbone(self, pillars, trainPillars, trainLabels, testPillars, testLabels):
+    def createModelBackbone(self, pillarsModel, trainPillars, trainLabels, testPillars, testLabels, input_pillars, input_indices):
         # 2d cnn backbone
 
         # Block1(S, 4, C)
-        x = pillars
-        for n in range(4):
+        x = pillarsModel
+        '''for n in range(4):
             S = (2, 2) if n == 0 else (1, 1)
             x = tf.keras.layers.Conv2D(defs.nb_channels, (3, 3), strides=S, padding="same", activation="relu",
                                     name="cnn/block1/conv2d%i" % n)(x)
@@ -58,7 +58,7 @@ class PointPillarModel:
 #conv layer over this- same size
 #single 1x1 or just this
 #dice + bin crossentropy
-        pillar_net = concat
+        pillar_net = concat'''
         if defs.detectionMethod == defs.DetectionMethod.DETECTIONHEAD:
             # Detection head
             occ = tf.keras.layers.Conv2D(defs.nb_anchors, (1, 1), name="occupancy/conv2d", activation="sigmoid")(concat)
@@ -80,7 +80,8 @@ class PointPillarModel:
         elif defs.detectionMethod == defs.DetectionMethod.BINARY:
             #What do do here? 
             print("Setting Binary Dense Layer!")
-            pillar_net = tf.keras.layers.Dense((20*30*40), activation = 'sigmoid')(concat)
+            pillar_net = tf.keras.layers.Dense((1000), activation = 'sigmoid')(pillarsModel)
+            pillar_net = tf.keras.models.Model([input_pillars, input_indices], [pillar_net])
         else:
             print("Error! Don't recognize the type of detection head!")
 
@@ -93,7 +94,8 @@ class PointPillarModel:
         #optimizer
         optimizer = tf.keras.optimizers.Adam(lr=defs.learning_rate, decay=defs.decay_rate)
         #compile
-        pillar_net.compile(optimizer, loss=loss.losses())
+        #pillar_net.compile(optimizer, loss=loss.losses())
+        pillar_net.compile(optimizer='adam', loss=tf.keras.losses.BinaryCrossentropy())
 
         #epoch_to_decay = int(
             #np.round(defs.iters_to_decay / defs.batch_size * int(np.ceil(float(len(label_files)) / params.batch_size))))
@@ -108,9 +110,11 @@ class PointPillarModel:
         # 
         # Train and save
         try:
-            pillar_net.fit(self.trainPillars,
-                        validation_data = self.trainLabels,
-                        steps_per_epoch=len(self.trainPillars),
+            print("Training data size: ", trainPillars.shape)
+            print("Training labels shape: ", len(trainLabels))
+            pillar_net.fit([trainPillars],
+                        validation_data = trainLabels,
+                        steps_per_epoch=len(trainPillars),
                         callbacks=callbacks,
                         use_multiprocessing=True,
                         epochs=int(defs.total_training_epochs),

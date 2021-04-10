@@ -10,7 +10,7 @@ class TrainingPipeline:
 
     def trainModel(self):
         ppFeatureNet = pointPillarFeatureNet.PointPillarFeatureNet()
-        ppFeatures = ppFeatureNet.feedForward()   
+        ppFeatures, input_pillars, input_indices = ppFeatureNet.feedForward()   
 
         ppModel = pointPillarModel.PointPillarModel("./myModel.h5py")
-        ppModel.createModelBackbone(ppFeatures, self.trainPillars, self.trainLabels, self.testPillars, self.testLabels)       
+        ppModel.createModelBackbone(ppFeatures, self.trainPillars, self.trainLabels, self.testPillars, self.testLabels, input_pillars, input_indices)       

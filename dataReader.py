@@ -71,6 +71,8 @@ class DataReader:
         for pc in testData:
             testPillars.append(pc.pillarVector)
             testLabels.append(pc.binLabel)  
+        trainPillars = np.array(trainPillars)
+        testPillars = np.array(testPillars)
         if len(trainPillars) != len(trainLabels):
             print("Error! train data and labels don't match")
         if len(testPillars) != len(testLabels):

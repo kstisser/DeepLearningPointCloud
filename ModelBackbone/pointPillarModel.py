@@ -10,11 +10,11 @@ class PointPillarModel:
         self.logDir = logDir
 
     #reference to https://github.com/tyagi-iiitv/PointPillars.git
-    def createModelBackbone(self, pillars, trainPillars, trainLabels, testPillars, testLabels):
+    def createModelBackbone(self, pillarsModel, trainPillars, trainLabels, testPillars, testLabels, input_pillars, input_indices):
         # 2d cnn backbone
 
         # Block1(S, 4, C)
-        x = pillars
+        x = pillarsModel
         '''for n in range(4):
             S = (2, 2) if n == 0 else (1, 1)
             x = tf.keras.layers.Conv2D(defs.nb_channels, (3, 3), strides=S, padding="same", activation="relu",
@@ -80,7 +80,8 @@ class PointPillarModel:
         elif defs.detectionMethod == defs.DetectionMethod.BINARY:
             #What do do here? 
             print("Setting Binary Dense Layer!")
-            pillar_net = tf.keras.layers.Dense((defs.max_pillars * defs.max_points * defs.num_features), activation = 'sigmoid')(pillars)
+            pillar_net = tf.keras.layers.Dense((1000), activation = 'sigmoid')(pillarsModel)
+            pillar_net = tf.keras.models.Model([input_pillars, input_indices], [pillar_net])
         else:
             print("Error! Don't recognize the type of detection head!")
 
@@ -109,9 +110,11 @@ class PointPillarModel:
         # 
         # Train and save
         try:
-            pillar_net.fit(self.trainPillars,
-                        validation_data = self.trainLabels,
-                        steps_per_epoch=len(self.trainPillars),
+            print("Training data size: ", trainPillars.shape)
+            print("Training labels shape: ", len(trainLabels))
+            pillar_net.fit([trainPillars],
+                        validation_data = trainLabels,
+                        steps_per_epoch=len(trainPillars),
                         callbacks=callbacks,
                         use_multiprocessing=True,
                         epochs=int(defs.total_training_epochs),

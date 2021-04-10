@@ -45,7 +45,7 @@ class PointPillarFeatureNet:
         #relu
 
         #max pooling
-        return pillars
+        return pillars, input_pillars, input_indices
 
 
     def correct_batch_indices(self, tensor, batch_size):

@@ -44,6 +44,11 @@ class Pillar:
             elif self.getNumberOfEntries() < self.maxPointsPerPillar:
                 self.zeroPad()            
         else:
+            #add zeros in unused columns to make the same dimensions
+            if(len(self.D) == 0):
+                self.D = np.zeros((self.maxPointsPerPillar, defs.num_features))
+            else:
+                self.D[:,3:7] = np.zeros((len(self.D), 5))
             self.zeroPad() 
 
     #compute x,y,z means, and make D a numpy array
@@ -89,6 +94,7 @@ class Pillar:
         self.D = self.D[randomIndices, :]
 
     def getVec(self):
+        #print("Confirming D is dimensions 100x8: ", self.D.shape)
         return self.D
 
 class PointPillars:
@@ -106,7 +112,7 @@ class PointPillars:
 
     #Intending to separate data into point pillars size (140x100)
     #@numba.jit(nopython=True)
-    def buildPillars(self, pillarDimensions=defs.ppDimensions, maxPointsPerPillar=defs.maxParams):
+    def buildPillars(self, pillarDimensions=defs.ppDimensions, maxPointsPerPillar=defs.max_points):
         #generate centroid points for each pillar
         #note- adding 1 to the dimensions so we can remove the first, and shift the span left
         self.pillars = np.empty((pillarDimensions[0], pillarDimensions[1]), dtype=Pillar)
@@ -148,6 +154,8 @@ class PointPillars:
                 if pillar.getNumberOfEntries() > 0:
                     countNonemptyPillars = countNonemptyPillars + 1
 
+        pillarData = np.array(pillarData)
         print("Nonempty pillars: ", countNonemptyPillars)
         #self.visual.visualizePillars(self.pillars, (300,400), maxPointsPerPillar, self.minX, self.maxX, self.minY, self.maxY)
+        print("Confirming pillar data shape is 1200 x 100 x 8: ", pillarData.shape)
         return pillarData

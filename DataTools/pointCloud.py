@@ -13,10 +13,14 @@ from Preprocessing.Clustering import clusterer
 
 class PointCloud:
     #initialize from file path
-    def __init__(self, rootpath, pcType, samplingMethod, embeddingSize, embeddingType=defs.EmbeddingType.POINTPILLARS, clusteringType = defs.ClusterType.SKDBSCAN):
+    def __init__(self, rootpath, pcType, samplingMethod, embeddingSize=(8,8,12), embeddingType=defs.EmbeddingType.POINTPILLARS, clusteringType = defs.ClusterType.SKDBSCAN):
         self.viz = vizu.Visualizer()
         self.pcType = pcType
         self.allWithoutFace = np.array([])
+        self.clusteringType = clusteringType
+        self.samplingMethod = samplingMethod
+        self.embeddingType = embeddingType
+        self.embeddingSize = embeddingSize
 
         #read in data from file if not augmented
         if rootpath is not None:
@@ -33,6 +37,33 @@ class PointCloud:
             print("Face seg shape: ", self.faceseg.shape)
             print("All seg shape: ", self.allseg.shape)        
 
+        self.process()
+
+        #Make labels
+        self.generateBinaryLabels()
+
+    #initialize with data rather than file path
+    @classmethod
+    def generatedPointCloud(self, labels, faceseg, allseg, withoutFace, pcType, samplingMethod, embeddingSize=(8,8,12), embeddingType=defs.EmbeddingType.POINTPILLARS, clusteringType = defs.ClusterType.SKDBSCAN):
+        self.viz = vizu.Visualizer()
+        self.pcType = pcType
+        self.allWithoutFace = np.array([])
+        self.clusteringType = clusteringType
+        self.samplingMethod = samplingMethod
+        self.embeddingType = embeddingType
+        self.embeddingSize = embeddingSize
+        self.faceseg = faceseg
+        self.allseg = allseg
+        self.allWithoutFace = withoutFace
+        if labels is not None:
+            self.binLabel = labels
+        else:
+            self.generateBinaryLabels()
+
+        process()
+
+
+    def process(self):
         #establish center face location
         x = (max(self.faceseg[:,0]) - min(self.faceseg[:,0]))/2.0
         y = (max(self.faceseg[:,1]) - min(self.faceseg[:,1]))/2.0
@@ -41,22 +72,15 @@ class PointCloud:
 
         #Downsampling
         self.randomSampler = randomSampler.RandomSampler()
-        self.samplingMethod = samplingMethod
         self.sampleNumber = 1000
         self.downsample()     
 
         #Clustering
-        #self.clusteringType = clusteringType
         #self.clusterPoints()
         self.passableClusters = [self.downsampledAll]
 
         #Embedding
-        self.embeddingType = embeddingType
-        self.embeddingSize = embeddingSize
-        self.embedPointCloud()
-
-        #Make labels
-        self.generateBinaryLabels()
+        self.embedPointCloud()        
 
     @classmethod
     def augmentedPointCloud(self, allData, faceData):

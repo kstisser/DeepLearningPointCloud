@@ -26,10 +26,10 @@ class Model:
             tf.keras.layers.Dense(1)
         ])  
 
-        model.compile(optimizer="adam", loss=tf.keras.losses.BinaryCrossentropy(), metrics=["accuracy", "mae"])   
+        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001), loss=tf.keras.losses.BinaryCrossentropy(), metrics=["accuracy", "mae"])   
 
         history = model.fit(trainData, trainLabels, epochs=10, 
-                   validation_split=0.15, batch_size=64, verbose=False)  
+                   validation_data=(testData, testLabels), batch_size=5, verbose=False)  
 
         model.evaluate(testData, testLabels, verbose=2)           
 

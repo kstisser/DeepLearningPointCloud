@@ -15,7 +15,7 @@ class PointPillarModel:
 
         # Block1(S, 4, C)
         x = pillarsModel
-        '''for n in range(4):
+        for n in range(4):
             S = (2, 2) if n == 0 else (1, 1)
             x = tf.keras.layers.Conv2D(defs.nb_channels, (3, 3), strides=S, padding="same", activation="relu",
                                     name="cnn/block1/conv2d%i" % n)(x)
@@ -58,7 +58,7 @@ class PointPillarModel:
 #conv layer over this- same size
 #single 1x1 or just this
 #dice + bin crossentropy
-        pillar_net = concat'''
+        pillar_net = concat
         if defs.detectionMethod == defs.DetectionMethod.DETECTIONHEAD:
             # Detection head
             occ = tf.keras.layers.Conv2D(defs.nb_anchors, (1, 1), name="occupancy/conv2d", activation="sigmoid")(concat)
@@ -80,7 +80,7 @@ class PointPillarModel:
         elif defs.detectionMethod == defs.DetectionMethod.BINARY:
             #What do do here? 
             print("Setting Binary Dense Layer!")
-            pillar_net = tf.keras.layers.Dense((1000), activation = 'sigmoid')(pillarsModel)
+            pillar_net = tf.keras.layers.Dense(defs.max_points, activation = 'sigmoid')(concat)
             pillar_net = tf.keras.models.Model([input_pillars, input_indices], [pillar_net])
         else:
             print("Error! Don't recognize the type of detection head!")
@@ -99,26 +99,31 @@ class PointPillarModel:
 
         #epoch_to_decay = int(
             #np.round(defs.iters_to_decay / defs.batch_size * int(np.ceil(float(len(label_files)) / params.batch_size))))
-        callbacks = [
+        '''callbacks = [
             tf.keras.callbacks.TensorBoard(log_dir="../Logs/"),
             tf.keras.callbacks.ModelCheckpoint(filepath=os.path.join("./", "myBackboneModel.h5"),
                                             monitor='val_loss', save_best_only=True),
             tf.keras.callbacks.EarlyStopping(patience=20, monitor='val_loss'),
-        ]
+        ]'''
 
         print(pillar_net.summary())    
         # 
         # Train and save
         try:
+            #trainLabels = np.array(trainLabels)
             print("Training data size: ", trainPillars.shape)
             print("Training labels shape: ", len(trainLabels))
-            pillar_net.fit([trainPillars],
+            #print(trainLabels)
+            '''pillar_net.fit(trainPillars,
                         validation_data = trainLabels,
                         steps_per_epoch=len(trainPillars),
                         callbacks=callbacks,
                         use_multiprocessing=True,
                         epochs=int(defs.total_training_epochs),
-                        workers=6)
+                        workers=6)'''
+            pillar_net.fit(trainPillars,
+                        validation_data = trainLabels,
+                        epochs=int(defs.total_training_epochs))
         except KeyboardInterrupt:
             model_str = "interrupted_%s.h5" % time.strftime("%Y%m%d-%H%M%S")
             pillar_net.save(os.path.join("../Logs/", model_str))

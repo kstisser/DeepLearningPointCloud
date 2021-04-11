@@ -34,14 +34,14 @@ class Visualizer:
 
         plt.show()   
 
-    def visualizePillars(self, pillars, imgShape, maxPointsPerPillar, xmin, xmax, ymin, ymax):
+    def visualizePillars(self, pillars, imgShape, maxPointsPerPillar):
         #generate a 3 channel image for visualization
         img = np.zeros((imgShape[0],imgShape[1],3), np.uint8)               
-        buffer = 3
+        buffer = 5
         for pRows in pillars:
             for pillar in pRows:
-                centerX = (pillar.center[0] - xmin)/(xmax-xmin) * imgShape[0]
-                centerY = (pillar.center[1] - ymin)/(ymax-ymin) * imgShape[1]
+                centerX = pillar.normalizedCenter[0] * imgShape[0]
+                centerY = pillar.normalizedCenter[1] * imgShape[1]
                 #print("Centerx: ", centerX, " centery: ", centerY)
                 upperLeft = (int(max(centerX-buffer,0)), int(max(centerY-buffer,0)))
                 lowerRight = (int(min(centerX+buffer, imgShape[0]-1)), int(min(centerY+buffer, imgShape[1]-1)))
@@ -49,7 +49,7 @@ class Visualizer:
                 #print("Lower right: ", lowerRight)   
                 #print("Center: ", pillar.center)              
                 if pillar.isEmpty:
-                    print("is empty")
+                    #print("is empty")
                     #color empty pillars green                   
                     img = cv.rectangle(img, upperLeft, lowerRight, (0,200,0), -1)
                 else:

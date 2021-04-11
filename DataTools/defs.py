@@ -38,8 +38,8 @@ ppDimensions = (30,40)
 #point pillar net
 nb_channels = 64
 max_points = 100
-max_pillars = 240#ppDimensions[0] * ppDimensions[1]
-batch_size = 1
+max_pillars = 1200#ppDimensions[0] * ppDimensions[1]
+batch_size = 5
 num_features = 8
 
 #point pillar model
@@ -78,5 +78,7 @@ z_max = 3.0
 # derived parameters
 Xn_f = float(x_max - x_min) / x_step
 Yn_f = float(y_max - y_min) / y_step
-Xn = int(Xn_f)
-Yn = int(Yn_f)
+#Xn = int(Xn_f)
+#Yn = int(Yn_f)
+Xn = int(ppDimensions[1])
+Yn = int(ppDimensions[0])

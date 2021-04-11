@@ -10,12 +10,19 @@ xc, yc, zc- Distance from the arithmetic mean of the pillar c the point belongs 
 xp, yp- Distance of the point from the center of the pillar in the x-y coordinate system
 '''
 class Pillar:
-    def __init__(self, ID, center, maxPointsPerPillar):
+    def __init__(self, ID, center, maxPointsPerPillar, xmin, xmax, ymin, ymax, zmin, zmax):
         self.ID = ID
         self.center = center
+        self.normalizedCenter = [(self.center[0]-xmin)/(xmax-xmin), (self.center[1]-ymin)/(ymax-ymin)]
         self.D = np.empty((0,3))
         self.maxPointsPerPillar = maxPointsPerPillar
         self.isEmpty = True
+        self.xmin = xmin
+        self.xmax = xmax
+        self.ymin = ymin
+        self.ymax = ymax
+        self.zmin = zmin
+        self.zmax = zmax
 
     #returns number of rows
     def getNumberOfEntries(self):
@@ -32,10 +39,16 @@ class Pillar:
         self.D = np.vstack([self.D, [x,y,z]])
         self.isEmpty = False
 
+    def normalizeZeroToOne(self):
+        self.D[:,0] = np.transpose(np.array([(x - self.xmin)/(self.xmax-self.xmin) for x in self.D[:,0]]))
+        self.D[:,1] = np.transpose(np.array([(y - self.ymin)/(self.ymax-self.ymin) for y in self.D[:,1]]))
+        self.D[:,2] = np.transpose(np.array([(z - self.zmin)/(self.zmax-self.zmin) for z in self.D[:,2]]))
+
     #Now that we have all points, compute the center and add the columns for c & p subscripts
     def finalizePillar(self):
         self.nonZero = len(self.D)
         if(not self.isEmpty):
+            self.normalizeZeroToOne()
             self.computeCenterMean()
             self.addColumns()
             #randomly sample pillars if too many points, or zero pad if too few
@@ -106,6 +119,8 @@ class PointPillars:
         self.maxY = max(self.data[:,0])
         self.minX = min(self.data[:,1])
         self.maxX = max(self.data[:,1])
+        self.minZ = min(self.data[:,2])
+        self.maxZ = max(self.data[:,2])
         self.Xspan = self.maxX - self.minX
         self.Yspan = self.maxY - self.minY
         self.visual = visualizer.Visualizer()
@@ -126,7 +141,7 @@ class PointPillars:
         for rowIdx in range(pillarDimensions[0]):
             for colIdx in range(pillarDimensions[1]):
                 center = (rowVals[rowIdx], colVals[colIdx])
-                self.pillars[rowIdx, colIdx] = Pillar(IDcount, center, maxPointsPerPillar)
+                self.pillars[rowIdx, colIdx] = Pillar(IDcount, center, maxPointsPerPillar, self.minX, self.maxX, self.minY, self.maxY, self.minZ, self.maxZ)
                 self.pillarsDic[IDcount] = self.pillars[rowIdx, colIdx]
                 IDcount = IDcount + 1
 
@@ -156,6 +171,6 @@ class PointPillars:
 
         pillarData = np.array(pillarData)
         print("Nonempty pillars: ", countNonemptyPillars)
-        #self.visual.visualizePillars(self.pillars, (300,400), maxPointsPerPillar, self.minX, self.maxX, self.minY, self.maxY)
+        #self.visual.visualizePillars(self.pillars, (300,400), maxPointsPerPillar)
         print("Confirming pillar data shape is 1200 x 100 x 8: ", pillarData.shape)
         return pillarData

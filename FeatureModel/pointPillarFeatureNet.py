@@ -14,7 +14,7 @@ class PointPillarFeatureNet:
         #self.image_size  = tuple([defs.ppDimensions[0], defs.ppDimensions[1]])
 
     #expects input layer to be (Batch size, max # pillars, max # points per pillar, # features in Point Pillar)
-    # ie (4,12000,100,9)
+    # ie (4,12000,100,8)
     def feedForward(self):
         input_pillars = tf.keras.layers.Input(self.input_shape, self.batch_size, name="pillars/input")
         input_indices = tf.keras.layers.Input((self.max_pillars, 3), batch_size=self.batch_size, name="pillars/indices", dtype=tf.int32)

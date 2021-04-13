@@ -34,14 +34,29 @@ Because we are not able to use all points in the point cloud given due to comput
 
 Next, we developed a clustering architecture which consists of a Clusterer and Cluster Profiler. The clusterer starts by running DBSCAN with eps = 0.05 and the minimum number of samples are 10. The Cluster Profiler maintains profiles of faces using number of points in the cluster, width of the cluster, and height of the cluster. We store an ideal face (an average of our downsampled data) with 200 points, 0.1907 meters width, and 0.2487 meters height to compute a score to compare each incoming cluster against. Our score calculation is:
 
-We also maintain a profile for a minimum face with 100 points, 0.1 meters width, and 0.2 meters height, and a maximum face with 300 points, 0.4 meters width, and 0.6 meters height. If the incoming cluster has any value lower than the minimum face or larger than the maximum face it is given a score of -1 and is eliminated. If the cluster is not eliminated by this, its score is computed when compared to the average face, and if the score is above the threshold 0.7, it is kept for further parallel evaluation in the Machine Learning pipeline.  
+We also maintain a profile for a minimum face with 100 points, 0.1 meters width, and 0.2 meters height, and a maximum face with 300 points, 0.4 meters width, and 0.6 meters height. If the incoming cluster has any value lower than the minimum face or larger than the maximum face it is given a score of -1 and is eliminated. If the cluster is not eliminated by this, its score is computed when compared to the average face, and if the score is above the threshold 0.7, it is kept for further parallel evaluation in the Machine Learning pipeline. The score equation using the averageFace and the incomingFace is:
+
+\[
+    numPointsScore= \frac{(averageFace.numPoints - incomingFace.numPoints)}{0.5 * (maxFace.numPoints - minFace.numPoints)}
+\]
+\[
+    widthScore= \frac{(averageFace.width - incomingFace.width)}{0.5 * (maxFace.width - minFace.width)}
+\]
+\[
+    heightScore= \frac{(averageFace.height - incomingFace.height)}{0.5 * (maxFace.height - minFace.height)}
+\]
+\[
+    score = numPointsScore + widthScore + heightScore
+\]
+
+Once the data has been sifted through clustering, we process each acceptable cluster through an embedding to become a point pillar\cite{pointpillars}. However, we are using 8 feature variables, not including the reflectance value as it is not available. These pillars are formed by projecting all points in the point cloud onto the x-y plane and binning them with a simple grid. The arithmetic mean of the x, y, z values of the points in each bin are taken, as well as the x and y offset of each point from the center of the pillar (the mean values). These statistics are then combined with the three dimensional coordinates of each point to give an eight dimensional vector for each point. Once processed into point pillars, we normalize the data to be between 0 and 1 before sending it through the deep learning model. 
 
 \section{Architecture}
-
+Once the data has been preprocessed, a vector of downsampled, clustered, point pillars are ready to enter the deep learning network. As we are working with 1200 maximum pillars, 100 maximum points per pillar, and 8 features, the incoming shape of the data is (number of samples, 1200, 100, 8). This is sent through an 8 layer sequential tensorflow model. First we run two Dense relu layers with 128 units, each followed by a Dropout layer with a 0.3 dropping rate to help with overfitting. We then run a 2D Convolution layer with 64 filters and a 3x3 kernel with same padding and relu activation. This is followed by a MaxPooling2D layer to help with overfitting and reducing computation. We add a flattening layer prior to the final Dense layer output with one unit for a binary output for each point in the point cloud. We compiled with an Adam optimizer with a learning rate of 0.0001 and a Binary Crossentropy loss function. We then need to remap that to the upsampled original pointcloud before delivering the result. 
 \section{Training}
-
+We implement the traditional 80/20 train-test split in dividing the pre-processed data. The data is treated by the point pillar method and the training data is passed to the model. Since the output of the model is a binary list, the validation data must match this form. To use the validation feature, we must offer something to compare the output of the model against, so we created an empirical set of binary values for each point in each point cloud, face points (1) or non-face points (0), and use this as the validation data to see how well the model is predicting the label of the points. This is important in seeing how quickly (and how well) the model is training before applying it to new data, the true test of a predictive model. Initially we were achieving a low accuracy of 0.2, but were able to increase the accuracy to 0.8 by reducing the learning rate to 0.0001. 
 \section{Conclusion}
-
+While there are far too many points in a point cloud to process all points in real time, we developed a method to smartly eliminate points through RANSAC, cluster elimination, and downsampling. We developed a simple but efficient model that can achieve an accuracy of 0.8 in labeling each point as a face in the incoming point cloud. Significant speedup is necessary but possible for this system to be able to run in real time. We also have future plans for kalman filter tracking on the face cluster to predict the location of the face in the next frame, as a face can only move a certain distance at a certain time frame. If the kalman filter has an accurate enough prediction, we will be able to eliminate all points outside of a bounding box barely larger than any head to significantly reduce the number of unnecessary points prior to running the data through the model. 
 \begin{thebibliography}{9}
 \bibitem{pointpillars} 
 PointPillars: Fast Encoders for Object Detection from Point Clouds, Dec 14, 2018

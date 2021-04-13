@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt 
 import DataTools.pointCloud as pc
 from DataTools import defs
-from DataAugmentation import dataAugmentation as da
+#from DataAugmentation import dataAugmentation as da
 from DummyDataGenerator import dummyDataGenerator as ddg
 
 class DataReader:

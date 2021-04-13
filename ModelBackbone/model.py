@@ -18,6 +18,10 @@ class Model:
         model = tf.keras.models.Sequential([
             tf.keras.layers.Dense(128, activation="relu", input_shape=(defs.max_pillars, defs.max_points, defs.num_features)),
             tf.keras.layers.Dropout(rate),
+            tf.keras.layers.Conv2D(defs.nb_channels, (1, 1), activation='linear', use_bias=False, name="pillars/conv2d"),
+            tf.keras.layers.BatchNormalization(name="pillars/batchnorm", fused=True, epsilon=1e-3, momentum=0.99),
+            tf.keras.layers.Activation("relu", name="pillars/relu"),
+            #tf.keras.layers.MaxPool2D((1, defs.max_points), name="pillars/maxpooling2d"),            
             tf.keras.layers.Dense(128, activation="relu"),
             tf.keras.layers.Dropout(rate),
             tf.keras.layers.Conv2D(64, 3, padding='same', activation='relu'),
@@ -29,7 +33,7 @@ class Model:
         model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001), loss=tf.keras.losses.BinaryCrossentropy(), metrics=["accuracy", "mae"])   
 
         history = model.fit(trainData, trainLabels, epochs=10, 
-                   validation_data=(testData, testLabels), batch_size=5, verbose=False)  
+                   validation_data=(testData, testLabels), batch_size=5, verbose=True)  
 
         model.evaluate(testData, testLabels, verbose=2)           
 

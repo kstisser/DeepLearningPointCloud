@@ -63,7 +63,7 @@ class PointCloud:
         process()
 
 
-    def process(self):
+    def process(self, visualize=False):
         #establish center face location
         x = (max(self.faceseg[:,0]) - min(self.faceseg[:,0]))/2.0
         y = (max(self.faceseg[:,1]) - min(self.faceseg[:,1]))/2.0
@@ -73,7 +73,7 @@ class PointCloud:
         #Downsampling
         self.randomSampler = randomSampler.RandomSampler()
         self.sampleNumber = 1000
-        self.downsample()     
+        self.downsample(visualize)     
 
         #Clustering
         #self.clusterPoints()
@@ -87,6 +87,7 @@ class PointCloud:
         self.faceseg = self.faceData
         self.allWithoutFace = self.allData
         self.allseg = self.vstack(self.faceseg, self.allWithoutFace)
+        self.process(True)
 
     def removeFaceFromAll(self):
         self.allWithoutFace
@@ -95,11 +96,12 @@ class PointCloud:
                 self.allWithoutFace = np.erase(self.allWithoutFace, i, 0)
                 i = i - 1
 
-    def downsample(self):
+    def downsample(self, visualize=False):
         if(self.samplingMethod == defs.DownsampleType.RANDOM):
             self.downsampledFace = self.randomSampler.randomlySamplePoints(self.faceseg, self.sampleNumber)
             self.downsampledAll = self.randomSampler.randomlySamplePoints(self.allseg, self.sampleNumber) 
-            #self.viz.visualizeFaceAndAllPlot(self.downsampledFace, self.downsampledAll)
+            if visualize:
+                self.viz.visualizeFaceAndAllPlot(self.downsampledFace, self.downsampledAll)
             print("Downsampled Face shape: ", self.downsampledFace.shape)
             print("Downsampled All shape: ", self.downsampledAll.shape)
             self.numDsPointsInFace = 0
@@ -149,3 +151,10 @@ class PointCloud:
     def generateBoundingBoxLable(self):
         #TODO- make a label for bounding boxes
         pass
+
+    def getFaceCenter(self):
+        xcenter = int((max(self.faceseg[0]) - min(self.faceseg[0]))/2.0)
+        ycenter = int((max(self.faceseg[1]) - min(self.faceseg[1]))/2.0)
+        zcenter = int((max(self.faceseg[2]) - min(self.faceseg[2]))/2.0)
+
+        return [xcenter, ycenter, zcenter]

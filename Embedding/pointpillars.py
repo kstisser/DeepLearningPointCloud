@@ -12,6 +12,7 @@ xp, yp- Distance of the point from the center of the pillar in the x-y coordinat
 class Pillar:
     def __init__(self, ID, center, maxPointsPerPillar, xmin, xmax, ymin, ymax, zmin, zmax):
         self.ID = ID
+        self.isFace = False
         self.center = center
         self.normalizedCenter = [(self.center[0]-xmin)/(xmax-xmin), (self.center[1]-ymin)/(ymax-ymin)]
         self.D = np.empty((0,3))
@@ -35,9 +36,11 @@ class Pillar:
         return np.sqrt((x-point[0])**2 + (y-point[1])**2)
 
     #add a point to the pillar
-    def addPoint(self, x, y, z):
+    def addPoint(self, x, y, z, facePoint):
         self.D = np.vstack([self.D, [x,y,z]])
         self.isEmpty = False
+        if facePoint:
+            self.isFace = True
 
     def normalizeZeroToOne(self):
         self.D[:,0] = np.transpose(np.array([(x - self.xmin)/(self.xmax-self.xmin) for x in self.D[:,0]]))
@@ -111,9 +114,10 @@ class Pillar:
         return self.D
 
 class PointPillars:
-    def __init__(self, data):
+    def __init__(self, data, labels):
         print("Opening point pillars")
         self.data = data
+        self.labels = labels
         self.pillarsDic = {}
         self.minY = min(self.data[:,0])
         self.maxY = max(self.data[:,0])
@@ -146,7 +150,8 @@ class PointPillars:
                 IDcount = IDcount + 1
 
         #assign and add points to each pillar
-        for point in self.data:
+        for i in range(len(self.data)):
+            point = self.data[i]
             tempPillarDic = {}
             distances = []
             for pRow in self.pillars:
@@ -158,19 +163,25 @@ class PointPillars:
             minDistance = min(np.array(distances))
             #print("Found min distance to ID: ", (tempPillarDic[minDistance]))
             #Add point to the pillar it matched with, and is the closest to
-            self.pillarsDic[(tempPillarDic[minDistance])].addPoint(point[0], point[1], point[2])
+            facePoint = self.labels[i]
+            self.pillarsDic[(tempPillarDic[minDistance])].addPoint(point[0], point[1], point[2], facePoint)
 
         pillarData = []
         countNonemptyPillars = 0
+        labelData = np.zeros(self.pillars.shape[0] * self.pillars.shape[1])
+        index = 0
         for pRows in self.pillars:
             for pillar in pRows:
                 pillar.finalizePillar()
                 pillarData.append(pillar.getVec())
+                if pillar.isFace:
+                    labelData[index] = 1
                 if pillar.getNumberOfEntries() > 0:
                     countNonemptyPillars = countNonemptyPillars + 1
+                index = index + 1
 
         pillarData = np.array(pillarData)
         print("Nonempty pillars: ", countNonemptyPillars)
         #self.visual.visualizePillars(self.pillars, (300,400), maxPointsPerPillar)
         print("Confirming pillar data shape is 1200 x 100 x 8: ", pillarData.shape)
-        return pillarData
+        return pillarData, labelData

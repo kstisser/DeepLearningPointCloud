@@ -39,9 +39,6 @@ class PointCloud:
 
         self.process()
 
-        #Make labels
-        self.generateBinaryLabels()
-
     #initialize with data rather than file path
     @classmethod
     def generatedPointCloud(self, labels, faceseg, allseg, withoutFace, pcType, samplingMethod, embeddingSize=(8,8,12), embeddingType=defs.EmbeddingType.POINTPILLARS, clusteringType = defs.ClusterType.SKDBSCAN):
@@ -55,15 +52,15 @@ class PointCloud:
         self.faceseg = faceseg
         self.allseg = allseg
         self.allWithoutFace = withoutFace
+        generateLabels = True
         if labels is not None:
             self.binLabel = labels
-        else:
-            self.generateBinaryLabels()
+            generateLabels = False
 
-        process()
+        process(generateLabels)
 
 
-    def process(self, visualize=False):
+    def process(self, makeLabels = True, visualize=False):
         #establish center face location
         x = (max(self.faceseg[:,0]) - min(self.faceseg[:,0]))/2.0
         y = (max(self.faceseg[:,1]) - min(self.faceseg[:,1]))/2.0
@@ -74,6 +71,10 @@ class PointCloud:
         self.randomSampler = randomSampler.RandomSampler()
         self.sampleNumber = 1000
         self.downsample(visualize)     
+
+        #Make labels
+        if makeLabels:
+            self.generateBinaryLabels()
 
         #Clustering
         #self.clusterPoints()
@@ -131,8 +132,8 @@ class PointCloud:
             for cluster in self.passableClusters:
                 #TODO- make this work in parallel
                 startTime = time.time()
-                self.pointPillars = pointpillars.PointPillars(self.downsampledAll)
-                self.pillarVector = self.pointPillars.buildPillars()
+                self.pointPillars = pointpillars.PointPillars(self.downsampledAll, self.binLabel)
+                self.pillarVector, self.pillarLabels = self.pointPillars.buildPillars()
                 endTime = time.time()
                 print("Point Pillars time took: ", (endTime - startTime))
         elif self.embeddingType == defs.EmbeddingType.PARABOLAS:

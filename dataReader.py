@@ -78,7 +78,7 @@ class DataReader:
         testLabels = []
         for pc in testData:
             testPillars.append(pc.pillarVector)
-            testLabels.append(pc.binLabel)  
+            testLabels.append(pc.pillarLabels)  
         trainPillars = np.array(trainPillars)
         testPillars = np.array(testPillars)
         trainLabels = np.array(trainLabels)

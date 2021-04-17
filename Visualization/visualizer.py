@@ -57,7 +57,10 @@ class Visualizer:
                     unfilledRatio = 1.0 - float(float(pillar.nonZero)/float(maxPointsPerPillar))
                     colorVal = int(unfilledRatio * 200 + 54)
                     #print("Colorval: ", colorVal)
-                    img = cv.rectangle(img, upperLeft, lowerRight, (0,0,colorVal), -1)
+                    if pillar.isFace:
+                        img = cv.rectangle(img, upperLeft, lowerRight, (colorVal,0,0), -1)
+                    else:
+                        img = cv.rectangle(img, upperLeft, lowerRight, (0,0,colorVal), -1)
         # print("Image size: ", img.shape)
         cv.imshow('Point Pillars',img)
         cv.waitKey(0)

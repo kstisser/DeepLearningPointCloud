@@ -5,8 +5,7 @@
 
 \title{Point Pillar Lidar Deep Learning Face Finding}
 \author{Karissa Stisser, Zach Larson, Naseem Alfaqueh\\
-\\And
-Anjali Patil, Adrian Lindsey, Omar Rizk }
+\\Anjali Patil, Adrian Lindsey, Omar Rizk }
 \date{April 2021- https://github.com/kstisser/DeepLearningPointCloud}
 
 \begin{document}
@@ -14,9 +13,9 @@ Anjali Patil, Adrian Lindsey, Omar Rizk }
 \maketitle
 
 \section{Introduction}
-We have created a system that uses deep learning to recognize a face in point cloud data using time series data in real time for surgical applications. As this use case is very specific, we focused on leveraging knowledge of the space and procedure to optimize the output rather than try to create a solution for all scenarios. We build a preprocessing pipeline that eliminated unnecessary points, leveraged the point pillars deep learning architecture\cite{pointpillars}, and modified the output for a pixel by pixel decision on whether that pixel belonged to the face. 
+We have created a system that uses deep learning to recognize a face in point cloud data using time series data in real time for surgical applications. As this use case is very specific, we focused on leveraging knowledge of the space and procedure to optimize the output rather than try to create a solution for all scenarios. We build a preprocessing pipeline that eliminated unnecessary points, leveraged the point pillars deep learning architecture\cite{pointpillars}, and modified the output for a point by point decision on whether that pixel belonged to the face. 
 \section{Data Augmentation}
-As we started with 7 point clouds, we developed a data augmentation plan to be used between the train and test data that involves background mixing, translation, rotation, scaling, and flipping as we would like the trained algorithm to be more robust to camera placement in relation to the face. We only modified in the x and y directions, as modifications in the z directions would actually add and remove points, which we weren't confident in accurately augmenting. 
+As we started with 7 point clouds, we developed a data augmentation plan to be used on both the train and test data that involves background mixing, translation, rotation, scaling, and flipping as we would like the trained algorithm to be more robust to camera placement in relation to the face. We only modified in the x and y directions, as modifications in the z directions would actually add and remove points, which we weren't confident in accurately augmenting. 
 
 We start by matching each face with each other background points. If we have n point clouds, this creates an additional n choose 2 combination of point clouds. 
 For each of these background mixed point clouds we added translation in a spiral format starting from the face center and moving outwards in 30 different locations. We continually increment the angle by 4 * pi/30 to ensure two spiral loops, and use the following equation for center face placement:
@@ -34,8 +33,6 @@ Because we are not able to use all points in the point cloud given due to comput
 
 Next, we developed a clustering architecture which consists of a Clusterer and Cluster Profiler. The clusterer starts by running DBSCAN with eps = 0.05 and the minimum number of samples are 10. The Cluster Profiler maintains profiles of faces using number of points in the cluster, width of the cluster, and height of the cluster. We store an ideal face (an average of our downsampled data) with 200 points, 0.1907 meters width, and 0.2487 meters height to compute a score to compare each incoming cluster against. Our score calculation is:
 
-We also maintain a profile for a minimum face with 100 points, 0.1 meters width, and 0.2 meters height, and a maximum face with 300 points, 0.4 meters width, and 0.6 meters height. If the incoming cluster has any value lower than the minimum face or larger than the maximum face it is given a score of -1 and is eliminated. If the cluster is not eliminated by this, its score is computed when compared to the average face, and if the score is above the threshold 0.7, it is kept for further parallel evaluation in the Machine Learning pipeline. The score equation using the averageFace and the incomingFace is:
-
 \[
     numPointsScore= \frac{(averageFace.numPoints - incomingFace.numPoints)}{0.5 * (maxFace.numPoints - minFace.numPoints)}
 \]
@@ -49,10 +46,12 @@ We also maintain a profile for a minimum face with 100 points, 0.1 meters width,
     score = numPointsScore + widthScore + heightScore
 \]
 
+We also maintain a profile for a minimum face with 100 points, 0.1 meters width, and 0.2 meters height, and a maximum face with 300 points, 0.4 meters width, and 0.6 meters height. If the incoming cluster has any value lower than the minimum face or larger than the maximum face it is given a score of -1 and is eliminated. If the cluster is not eliminated by this, its score is computed when compared to the average face, and if the score is above the threshold 0.7, it is kept for further parallel evaluation in the Machine Learning pipeline. 
+
 Once the data has been sifted through clustering, we process each acceptable cluster through an embedding to become a point pillar\cite{pointpillars}. However, we are using 8 feature variables, not including the reflectance value as it is not available. These pillars are formed by projecting all points in the point cloud onto the x-y plane and binning them with a simple grid. The arithmetic mean of the x, y, z values of the points in each bin are taken, as well as the x and y offset of each point from the center of the pillar (the mean values). These statistics are then combined with the three dimensional coordinates of each point to give an eight dimensional vector for each point. Once processed into point pillars, we normalize the data to be between 0 and 1 before sending it through the deep learning model. 
 
 \section{Architecture}
-Once the data has been preprocessed, a vector of downsampled, clustered, point pillars are ready to enter the deep learning network. As we are working with 1200 maximum pillars, 100 maximum points per pillar, and 8 features, the incoming shape of the data is (number of samples, 1200, 100, 8). This is sent through an 8 layer sequential tensorflow model. First we run two Dense relu layers with 128 units, each followed by a Dropout layer with a 0.3 dropping rate to help with overfitting. We then run a 2D Convolution layer with 64 filters and a 3x3 kernel with same padding and relu activation. This is followed by a MaxPooling2D layer to help with overfitting and reducing computation. We add a flattening layer prior to the final Dense layer output with one unit for a binary output for each point in the point cloud. We compiled with an Adam optimizer with a learning rate of 0.0001 and a Binary Crossentropy loss function. We then need to remap that to the upsampled original pointcloud before delivering the result. 
+Once the data has been preprocessed, a vector of downsampled, clustered, point pillars are ready to enter the deep learning network. As we are working with 1200 pillars, 100 maximum points per pillar, and 8 features, the incoming shape of the data is (number of samples, 1200, 100, 8). This is sent through an 8 layer sequential tensorflow model. First we run two Dense relu layers with 128 units, each followed by a Dropout layer with a 0.3 dropping rate to help with overfitting. We then run a 2D Convolution layer with 64 filters and a 3x3 kernel with same padding and relu activation. This is followed by a MaxPooling2D layer to help with overfitting and reducing computation. We add a flattening layer prior to the final Dense layer output with one unit for a binary output for each point in the point cloud. We compiled with an Adam optimizer with a learning rate of 0.0001 and a Binary Crossentropy loss function. We then need to remap that to the upsampled original pointcloud before delivering the result. 
 \section{Training}
 We implement the traditional 80/20 train-test split in dividing the pre-processed data. The data is treated by the point pillar method and the training data is passed to the model. Since the output of the model is a binary list, the validation data must match this form. To use the validation feature, we must offer something to compare the output of the model against, so we created an empirical set of binary values for each point in each point cloud, face points (1) or non-face points (0), and use this as the validation data to see how well the model is predicting the label of the points. This is important in seeing how quickly (and how well) the model is training before applying it to new data, the true test of a predictive model. Initially we were achieving a low accuracy of 0.2, but were able to increase the accuracy to 0.8 by reducing the learning rate to 0.0001. 
 \section{Conclusion}

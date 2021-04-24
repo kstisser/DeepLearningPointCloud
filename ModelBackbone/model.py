@@ -42,4 +42,7 @@ class Model:
         plt.ylabel('Loss')
         plt.xlabel('Epoch')
         plt.legend(['Training', 'Validation'], loc='upper right')
-        plt.show()            
+        plt.show()  
+
+        predictions = model.predict(testData)
+        return predictions          

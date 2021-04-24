@@ -15,6 +15,9 @@ class Pillar:
         self.isFace = False
         self.center = center
         self.normalizedCenter = [(self.center[0]-xmin)/(xmax-xmin), (self.center[1]-ymin)/(ymax-ymin)]
+        self.picCenter = [(self.center[0])/(defs.ppDimensions[0]), (self.center[1])/(defs.ppDimensions[1])]
+        #print("X min: ", xmin, " Y min: ", ymin)
+        #print("Normalized center: ", self.normalizedCenter)
         self.D = np.empty((0,3))
         self.maxPointsPerPillar = maxPointsPerPillar
         self.isEmpty = True
@@ -182,6 +185,30 @@ class PointPillars:
 
         pillarData = np.array(pillarData)
         print("Nonempty pillars: ", countNonemptyPillars)
-        #self.visual.visualizePillars(self.pillars, (300,400), maxPointsPerPillar)
+        #self.visual.visualizePillars(self.pillars, (defs.ppDimensions[0]*10,defs.ppDimensions[1]*10), maxPointsPerPillar)
         print("Confirming pillar data shape is 1200 x 100 x 8: ", pillarData.shape)
         return pillarData, labelData
+
+    def compareLabels(self, testLabels):
+        count = 0
+        countCorrect = 0
+        countLabelledFaceIncorrectly = 0
+        countMissedFace = 0
+        for pRows in self.pillars:
+            for pillar in pRows:
+                
+                if pillar.isFace:
+                    if testLabels[count] == 1:
+                        countCorrect = countCorrect + 1
+                    else:
+                        countMissedFace = countMissedFace + 1
+                else:
+                    if testLabels[count] == 0:
+                        countCorrect == countCorrect + 1
+                    else:
+                        countLabelledFaceIncorrectly = countLabelledFaceIncorrectly + 1
+                count = count + 1
+
+        print("Total: ", count, " labelled correctly: ", countCorrect, " Missed face: ", countMissedFace, " Count labelled face incorrectly: ", countLabelledFaceIncorrectly)
+        print("Percentages, correct: ", countCorrect/count, " Missed face: ", countMissedFace/count, " Labelled face incorrectly: ", countLabelledFaceIncorrectly/count)
+        print("Ratio of incorrect labels, missed faces: ", countMissedFace/(countMissedFace + countLabelledFaceIncorrectly), " labelled face incorrectly: ", countLabelledFaceIncorrectly/(countMissedFace + countLabelledFaceIncorrectly))

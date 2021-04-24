@@ -61,22 +61,22 @@ class DataReader:
     def getTrainTestSplit(self):
         trainRatio = 0.8
         numTrain = math.floor(len(self.pointClouds) * trainRatio)
-        trainingData = self.pointClouds[:numTrain]
-        testData = self.pointClouds[numTrain:]
-        if len(testData) < 1:
+        self.trainingData = self.pointClouds[:numTrain]
+        self.testData = self.pointClouds[numTrain:]
+        if len(self.testData) < 1:
             print("Error! Data set too small to make any test data!")
             sys.exit()
-        print("Splitting into training: ", len(trainingData), ", test: ", len(testData))
+        print("Splitting into training: ", len(self.trainingData), ", test: ", len(self.testData))
 
         #put into x and y sets
         trainPillars = []
         trainLabels = []
-        for pc in trainingData:
+        for pc in self.trainingData:
             trainPillars.append(pc.pillarVector)
             trainLabels.append(pc.pillarLabels)
         testPillars = []
         testLabels = []
-        for pc in testData:
+        for pc in self.testData:
             testPillars.append(pc.pillarVector)
             testLabels.append(pc.pillarLabels)  
         trainPillars = np.array(trainPillars)
@@ -88,3 +88,12 @@ class DataReader:
         if len(testPillars) != len(testLabels):
             print("Error! Test data and labels don't match")  
         return [trainPillars, trainLabels, testPillars, testLabels]
+
+    def visualizeResults(self, resultLabels):
+        #Get metrics on differences in what was predicted correctly vs incorrectly
+        labelCountPerPillar = defs.max_pillars
+        count = 0
+        for testPointCloud in self.testData:
+            labelsToCompare = resultLabels[(count * labelCountPerPillar):((count+1) * labelCountPerPillar)]
+            testPointCloud.compareLabels(labelsToCompare)
+            count = count + 1

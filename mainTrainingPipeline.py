@@ -1,5 +1,6 @@
 import dataReader
 from Pipeline import trainingPipeline
+from Visualization import visualizer
 
 if __name__ == "__main__":
     #read in data
@@ -10,4 +11,5 @@ if __name__ == "__main__":
 
     #train the data
     trainPipeline = trainingPipeline.TrainingPipeline(trainPillars, trainLabels, testPillars, testLabels)
-    trainPipeline.trainModel()
+    results = trainPipeline.trainModel()
+    dr.visualizeResults(results)

@@ -38,13 +38,18 @@ class Visualizer:
         #generate a 3 channel image for visualization
         img = np.zeros((imgShape[0],imgShape[1],3), np.uint8)               
         buffer = 5
+        ys = []
+        xs = []
         for pRows in pillars:
             for pillar in pRows:
-                centerX = pillar.normalizedCenter[0] * imgShape[0]
-                centerY = pillar.normalizedCenter[1] * imgShape[1]
+                centerY = (pillar.normalizedCenter[1] * imgShape[1])
+                centerX = (pillar.normalizedCenter[0] * imgShape[0])
+                #print("XCenter: ", centerX, " YCenter: ", centerY)
+                ys.append(centerY)
+                xs.append(centerX)
                 #print("Centerx: ", centerX, " centery: ", centerY)
-                upperLeft = (int(max(centerX-buffer,0)), int(max(centerY-buffer,0)))
-                lowerRight = (int(min(centerX+buffer, imgShape[0]-1)), int(min(centerY+buffer, imgShape[1]-1)))
+                upperLeft = (int(max(centerY-buffer,0)), int(max(centerX-buffer,0)))
+                lowerRight = (int(min(centerY+buffer, imgShape[1]-1)), int(min(centerX+buffer, imgShape[0]-1)))
                 #print("Upper left: ", upperLeft)
                 #print("Lower right: ", lowerRight)   
                 #print("Center: ", pillar.center)              
@@ -61,6 +66,10 @@ class Visualizer:
                         img = cv.rectangle(img, upperLeft, lowerRight, (colorVal,0,0), -1)
                     else:
                         img = cv.rectangle(img, upperLeft, lowerRight, (0,0,colorVal), -1)
+        ys = np.array(ys)
+        xs = np.array(xs)
+        print("Y min: ", np.min(ys), ", Y max: ", np.max(ys), " Y mean: ", np.mean(ys))
+        print("X min: ", np.min(xs), ", X max: ", np.max(xs), " X mean: ", np.mean(xs))
         # print("Image size: ", img.shape)
         cv.imshow('Point Pillars',img)
         cv.waitKey(0)
@@ -73,3 +82,6 @@ class Visualizer:
         ax.scatter(dataToPredict[:,0], dataToPredict[:,1], dataToPredict[:,2], c = labels, alpha=1, marker='.')
         ax.view_init(-140, 120)
         plt.show()
+
+    def displayDifferencesInResults(self, testLabels, testPillars):
+        pass

@@ -159,3 +159,6 @@ class PointCloud:
         zcenter = int((max(self.faceseg[2]) - min(self.faceseg[2]))/2.0)
 
         return [xcenter, ycenter, zcenter]
+
+    def compareLabels(self, testLabels):
+        self.pointPillars.compareLabels(testLabels)

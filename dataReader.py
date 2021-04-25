@@ -93,7 +93,8 @@ class DataReader:
         #Get metrics on differences in what was predicted correctly vs incorrectly
         labelCountPerPillar = defs.max_pillars
         count = 0
+        print("Result labels shape: ", resultLabels)
         for testPointCloud in self.testData:
-            labelsToCompare = resultLabels[(count * labelCountPerPillar):((count+1) * labelCountPerPillar)]
+            labelsToCompare = resultLabels[count]
             testPointCloud.compareLabels(labelsToCompare)
             count = count + 1

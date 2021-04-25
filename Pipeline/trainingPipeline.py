@@ -17,4 +17,4 @@ class TrainingPipeline:
         ppModel.createModelBackbone(ppFeatures, self.trainPillars, self.trainLabels, self.testPillars, self.testLabels, input_pillars, input_indices)  ''' 
 
         mod = model.Model()
-        mod.train(self.trainPillars, self.trainLabels, self.testPillars, self.testLabels)    
+        return mod.train(self.trainPillars, self.trainLabels, self.testPillars, self.testLabels)    

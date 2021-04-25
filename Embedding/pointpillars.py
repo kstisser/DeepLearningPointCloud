@@ -2,6 +2,7 @@
 import numpy as np
 from Visualization import visualizer
 from DataTools import defs 
+import seaborn as sns
 
 '''
 This class holds all information needed for a pillar
@@ -58,6 +59,7 @@ class Pillar:
             self.computeCenterMean()
             self.addColumns()
             #randomly sample pillars if too many points, or zero pad if too few
+            #print("***Ended up with: ", self.getNumberOfEntries(), " points in the pillar")
             if self.getNumberOfEntries() > self.maxPointsPerPillar:
                 self.randomlyDownsample()
             elif self.getNumberOfEntries() < self.maxPointsPerPillar:
@@ -194,21 +196,27 @@ class PointPillars:
         countCorrect = 0
         countLabelledFaceIncorrectly = 0
         countMissedFace = 0
+        print("Results shape: ", np.array(testLabels).shape)
+        visualizationColors = []
         for pRows in self.pillars:
             for pillar in pRows:
-                
                 if pillar.isFace:
                     if testLabels[count] == 1:
                         countCorrect = countCorrect + 1
+                        visualizationColors.append((255,0,0))
                     else:
                         countMissedFace = countMissedFace + 1
+                        visualizationColors.append((0,165,255))
                 else:
                     if testLabels[count] == 0:
                         countCorrect == countCorrect + 1
+                        visualizationColors.append((0,0,255))
                     else:
                         countLabelledFaceIncorrectly = countLabelledFaceIncorrectly + 1
+                        visualizationColors.append((0,255,255))
                 count = count + 1
 
         print("Total: ", count, " labelled correctly: ", countCorrect, " Missed face: ", countMissedFace, " Count labelled face incorrectly: ", countLabelledFaceIncorrectly)
         print("Percentages, correct: ", countCorrect/count, " Missed face: ", countMissedFace/count, " Labelled face incorrectly: ", countLabelledFaceIncorrectly/count)
         print("Ratio of incorrect labels, missed faces: ", countMissedFace/(countMissedFace + countLabelledFaceIncorrectly), " labelled face incorrectly: ", countLabelledFaceIncorrectly/(countMissedFace + countLabelledFaceIncorrectly))
+        #self.visual.visualizePillars(self.pillars, (defs.ppDimensions[0]*10,defs.ppDimensions[1]*10), defs.maxPointsPerPillar, visualizationColors)

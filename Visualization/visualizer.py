@@ -34,7 +34,7 @@ class Visualizer:
 
         plt.show()   
 
-    def visualizePillars(self, pillars, imgShape, maxPointsPerPillar):
+    def visualizePillars(self, pillars, imgShape, maxPointsPerPillar, visualizationColors=None):
         #generate a 3 channel image for visualization
         img = np.zeros((imgShape[0],imgShape[1],3), np.uint8)               
         buffer = 5
